@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Geist_Mono, Spline_Sans_Mono } from 'next/font/google'
 
+import { Footer } from '@/components/Footer'
 import { Header } from '@/components/Header'
 import { ThemeProvider } from '@/components/providers/ThemeProvider'
 
@@ -33,10 +34,11 @@ export default function RootLayout({
 			suppressHydrationWarning
 		>
 			<body className="min-h-full flex flex-col">
-				<ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-					<main className="w-full max-w-6xl flex flex-col flex-1 mx-auto">
+				<ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+					<main className="w-full flex flex-col flex-1">
 						<Header />
-						{children}
+						<div className="w-full max-w-6xl flex flex-col flex-1 mx-auto">{children}</div>
+						<Footer />
 					</main>
 				</ThemeProvider>
 			</body>
