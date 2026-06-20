@@ -1,33 +1,12 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { useSpeech } from '@/components/hooks/useSpeech'
 import { type CharState, useTyping } from '@/components/hooks/useTyping'
+import { Loading } from '@/components/Loading'
 import { VoiceSelect } from '@/components/VoiceSelect'
-
-// const data = `When you're on the highway, use cruise control, which helps maintain a constant speed. Use the highest gear possible and overdrive gears if you have them. The faster an engine is turning, the more gas you're using. Pay attention to your tachometer. Plus, a slower turning engine means less friction and engine wear. Avoid excessive idling.`
-
-const data = [
-	["When you're on the highway,", 'Quando você está na rodovia,'],
-	['use cruise control,', 'use o piloto automático,'],
-	['which helps maintain', 'que ajuda a manter'],
-	['a constant speed.', 'uma velocidade constante.'],
-	['Use the highest gear possible', 'Use a marcha mais alta possível'],
-	['and overdrive gears', 'e as marchas overdrive'],
-	['if you have them.', 'se você as tiver.'],
-	['The faster an engine is turning,', 'Quanto mais rápido o motor gira,'],
-	["the more gas you're using.", 'mais gasolina você gasta.'],
-	['Pay attention to', 'Preste atenção ao'],
-	['your tachometer.', 'seu tacômetro.'],
-	['Plus,', 'Além disso,'],
-	['a slower turning engine', 'um motor que gira mais devagar'],
-	['means less friction', 'significa menos atrito'],
-	['and engine wear.', 'e menos desgaste do motor.'],
-	['Avoid excessive idling.', 'Evite a marcha lenta excessiva.'],
-]
-
-const chunks = data.map(([en]) => en)
+import { TypingData } from '@/utils/typingData'
 
 const STATE_CLASS: Record<CharState['state'], string> = {
 	pending: 'text-muted-foreground/80',
@@ -36,8 +15,12 @@ const STATE_CLASS: Record<CharState['state'], string> = {
 }
 
 export default function TypingPage() {
+	const [isLoading, setIsLoading] = useState(true)
+	const [item, setItem] = useState<TypingData | null>(null)
 	const [sourceVoiceURI, setSourceVoiceURI] = useState<string>()
 	const [targetVoiceURI, setTargetVoiceURI] = useState<string>()
+	const inputRef = useRef<HTMLInputElement>(null)
+	const seenRef = useRef<string[]>([])
 
 	const { speak, speakTranslation } = useSpeech({
 		sourceLang: 'en',
@@ -46,18 +29,43 @@ export default function TypingPage() {
 		targetVoiceURI,
 	})
 
+	const fetchNext = useCallback(async () => {
+		const res = await fetch('/api/typing', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ seen: seenRef.current }),
+		})
+		const next: TypingData = await res.json()
+		setItem(next)
+		if (inputRef.current) inputRef.current.value = ''
+		inputRef.current?.focus()
+	}, [])
+
+	useEffect(() => {
+		fetchNext().finally(() => setIsLoading(false))
+	}, [fetchNext])
+
+	const chunks = useMemo(() => item?.data.map(([en]) => en) ?? [], [item])
+
 	const { chars, handleInput } = useTyping(chunks, {
 		onWordComplete: word => speak(word),
-		onChunkComplete: i => speakTranslation(data[i][1]),
+		onChunkComplete: i => item && speakTranslation(item.data[i][1]),
+		onComplete: () => {
+			if (item) seenRef.current = [...seenRef.current, item.id]
+			setIsLoading(true)
+			fetchNext().finally(() => setIsLoading(false))
+		},
 	})
 
-	const inputRef = useRef<HTMLInputElement>(null)
+	const caretRef = useRef<HTMLSpanElement>(null)
+	const currentIndex = chars.findIndex(c => c.current)
+
+	useEffect(() => {
+		caretRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+	}, [currentIndex])
 
 	return (
-		<div
-			className="w-full flex flex-col flex-1 items-end justify-center gap-2 mx-auto p-4"
-			onClick={() => inputRef.current?.focus()}
-		>
+		<div className="w-full min-h-0 flex flex-col flex-1 items-end justify-center gap-2 mx-auto p-4">
 			<div className="flex items-center gap-2">
 				<VoiceSelect
 					language="en"
@@ -75,17 +83,30 @@ export default function TypingPage() {
 				/>
 			</div>
 
-			<div className="w-full mx-auto bg-card border border-border p-2 rounded-md">
-				<div className="text-4xl leading-15 cursor-text select-none">
-					{chars.map(({ char, state, current }, i) => (
-						<span key={i} className={`relative ${STATE_CLASS[state]}`}>
-							{current && (
-								<span className="absolute left-0 top-0 bottom-0 w-0.5 bg-primary animate-caret-blink" />
-							)}
-							{char}
-						</span>
-					))}
-				</div>
+			<div
+				onClick={() => inputRef.current?.focus()}
+				className="w-full min-h-28 flex flex-col border border-border rounded-md bg-card p-2"
+			>
+				{isLoading ? (
+					<div className="w-full flex items-center justify-center flex-1">
+						<Loading />
+					</div>
+				) : (
+					<div className="text-4xl leading-15 cursor-text select-none max-h-[50vh] overflow-hidden">
+						{chars.map(({ char, state, current }, i) => (
+							<span
+								key={i}
+								ref={current ? caretRef : null}
+								className={`relative ${STATE_CLASS[state]}`}
+							>
+								{current && (
+									<span className="absolute left-0 top-0 bottom-0 w-0.5 bg-primary animate-caret-blink" />
+								)}
+								{char}
+							</span>
+						))}
+					</div>
+				)}
 			</div>
 
 			<input
