@@ -1,7 +1,9 @@
 import Link from 'next/link'
 
+import Github from './icons/Github'
 import Logo from './icons/Logo'
-import { ThemeToggle } from './ModeToggle'
+import { Button } from './ui/button'
+import { ThemeToggle } from './ThemeToggle'
 
 export function Header() {
 	return (
@@ -9,7 +11,15 @@ export function Header() {
 			<Link href="/">
 				<Logo className="w-32" />
 			</Link>
-			<ThemeToggle />
+
+			<div className="flex items-center gap-2">
+				<Link href="https://github.com/Lucasmm016/eco-typing.git">
+					<Button variant="ghost">
+						<Github className="size-5" />
+					</Button>
+				</Link>
+				<ThemeToggle />
+			</div>
 		</header>
 	)
 }

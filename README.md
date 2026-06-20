@@ -4,6 +4,8 @@ Treine inglês digitando. Você digita um texto em inglês trecho a trecho; a ca
 palavra concluída, uma voz fala a pronúncia em inglês e, ao terminar cada trecho,
 você ouve a tradução em português.
 
+--> [Acesse um exemplo aqui](https://ecotyping.vercel.app/)
+
 ## Objetivo
 
 Associar **escrita + pronúncia + significado** num só fluxo: enquanto digita, seu

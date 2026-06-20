@@ -15,17 +15,6 @@ export default function Home() {
 						a cada palavra concluída, uma voz fala a pronúncia em inglês e, ao terminar cada trecho,
 						você ouve a tradução em português.
 					</p>
-					<p>
-						Encontre o <b>código fonte</b> deste projeto no{' '}
-						<a
-							href="https://github.com/Lucasmm016/eco-typing.git"
-							target="_blank"
-							rel="noopener noreferrer"
-							className="text-blue-500 underline"
-						>
-							Github
-						</a>
-					</p>
 				</div>
 				<Link href="/typing" className="w-full max-w-sm">
 					<Button size="lg" className="w-full">
