@@ -142,5 +142,10 @@ export function useTyping(
 		[text, typed],
 	)
 
-	return { chars, handleInput }
+	const reset = () => {
+		setTyped('')
+		setMaxLen(0)
+	}
+
+	return { chars, handleInput, reset }
 }

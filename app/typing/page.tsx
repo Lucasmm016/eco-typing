@@ -1,12 +1,14 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { RotateCw } from 'lucide-react'
 
 import { useMediaQuery } from '@/components/hooks/useMediaQuery'
 import { useSpeech } from '@/components/hooks/useSpeech'
 import { type CharState, useTyping } from '@/components/hooks/useTyping'
 import { Loading } from '@/components/Loading'
-import { VoiceSelect } from '@/components/VoiceSelect'
+import { Button } from '@/components/ui/button'
+import { VoiceSetup } from '@/components/VoiceSetup'
 import { TypingData } from '@/utils/typingData'
 
 const STATE_CLASS: Record<CharState['state'], string> = {
@@ -18,6 +20,9 @@ const STATE_CLASS: Record<CharState['state'], string> = {
 export default function TypingPage() {
 	const [isLoading, setIsLoading] = useState(true)
 	const [item, setItem] = useState<TypingData | null>(null)
+	const [sourceEnabled, setSourceEnabled] = useState(true)
+	const [targetEnabled, setTargetEnabled] = useState(true)
+	const [voiceVolume, setVoiceVolume] = useState(100)
 	const [sourceVoiceURI, setSourceVoiceURI] = useState<string>()
 	const [targetVoiceURI, setTargetVoiceURI] = useState<string>()
 	const inputRef = useRef<HTMLInputElement>(null)
@@ -31,6 +36,9 @@ export default function TypingPage() {
 		targetLang: 'pt-BR',
 		sourceVoiceURI,
 		targetVoiceURI,
+		sourceEnabled,
+		targetEnabled,
+		volume: voiceVolume,
 	})
 
 	const fetchNext = useCallback(async () => {
@@ -51,7 +59,7 @@ export default function TypingPage() {
 
 	const chunks = useMemo(() => item?.data.map(([en]) => en) ?? [], [item])
 
-	const { chars, handleInput } = useTyping(chunks, {
+	const { chars, handleInput, reset } = useTyping(chunks, {
 		onWordComplete: word => speak(word),
 		onChunkComplete: i => item && speakTranslation(item.data[i][1]),
 		onComplete: () => {
@@ -81,22 +89,31 @@ export default function TypingPage() {
 		container.scrollTo({ top, behavior: 'smooth' })
 	}, [isMobile, currentIndex])
 
+	const handleReset = () => {
+		reset()
+		if (inputRef.current) inputRef.current.value = ''
+		inputRef.current?.focus()
+	}
+
 	return (
 		<div className="w-full min-h-0 flex flex-col flex-1 items-end justify-center gap-2 mx-auto p-4">
 			<div className="flex items-center gap-2">
-				<VoiceSelect
-					language="en"
-					value={sourceVoiceURI}
-					onChange={setSourceVoiceURI}
-					label="Voz nativa"
-					cookieName="voice-native"
-				/>
-				<VoiceSelect
-					language="pt-BR"
-					value={targetVoiceURI}
-					onChange={setTargetVoiceURI}
-					label="Voz de tradução"
-					cookieName="voice-translate"
+				<Button onClick={handleReset} variant="outline">
+					<RotateCw />
+					Reiniciar
+				</Button>
+
+				<VoiceSetup
+					enableSourceVoice={sourceEnabled}
+					onCheckedEnableSourceVoice={setSourceEnabled}
+					enableTargetVoice={targetEnabled}
+					onCheckedEnableTargetVoice={setTargetEnabled}
+					voiceVolume={voiceVolume}
+					onVoiceVolumeChange={setVoiceVolume}
+					sourceVoiceURI={sourceVoiceURI}
+					onChangeSourceVoiceURI={setSourceVoiceURI}
+					targetVoiceURI={targetVoiceURI}
+					onChangeTargetVoiceURI={setTargetVoiceURI}
 				/>
 			</div>
 
