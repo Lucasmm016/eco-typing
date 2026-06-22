@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
+import { useMediaQuery } from '@/components/hooks/useMediaQuery'
 import { useSpeech } from '@/components/hooks/useSpeech'
 import { type CharState, useTyping } from '@/components/hooks/useTyping'
 import { Loading } from '@/components/Loading'
@@ -21,6 +22,9 @@ export default function TypingPage() {
 	const [targetVoiceURI, setTargetVoiceURI] = useState<string>()
 	const inputRef = useRef<HTMLInputElement>(null)
 	const seenRef = useRef<string[]>([])
+	const scrollRef = useRef<HTMLDivElement>(null)
+
+	const isMobile = useMediaQuery('(max-width: 768px)')
 
 	const { speak, speakTranslation } = useSpeech({
 		sourceLang: 'en',
@@ -61,8 +65,21 @@ export default function TypingPage() {
 	const currentIndex = chars.findIndex(c => c.current)
 
 	useEffect(() => {
-		caretRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' })
-	}, [currentIndex])
+		const container = scrollRef.current
+		const caret = caretRef.current
+		if (!container || !caret) return
+
+		const caretTop =
+			caret.getBoundingClientRect().top -
+			container.getBoundingClientRect().top +
+			container.scrollTop
+
+		const top = isMobile
+			? caretTop - container.clientHeight / 2 + caret.offsetHeight / 2 // center
+			: caretTop // start
+
+		container.scrollTo({ top, behavior: 'smooth' })
+	}, [isMobile, currentIndex])
 
 	return (
 		<div className="w-full min-h-0 flex flex-col flex-1 items-end justify-center gap-2 mx-auto p-4">
@@ -92,7 +109,10 @@ export default function TypingPage() {
 						<Loading />
 					</div>
 				) : (
-					<div className="text-4xl leading-15 cursor-text select-none max-h-[50vh] overflow-hidden">
+					<div
+						ref={scrollRef}
+						className="text-4xl leading-15 cursor-text select-none max-h-[50vh] overflow-hidden"
+					>
 						{chars.map(({ char, state, current }, i) => (
 							<span
 								key={i}
