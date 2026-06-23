@@ -7,6 +7,7 @@ import { useMediaQuery } from '@/components/hooks/useMediaQuery'
 import { useSpeech } from '@/components/hooks/useSpeech'
 import { type CharState, useTyping } from '@/components/hooks/useTyping'
 import { Loading } from '@/components/Loading'
+import { Timer } from '@/components/Timer'
 import { Button } from '@/components/ui/button'
 import { VoiceSetup } from '@/components/VoiceSetup'
 import { TypingData } from '@/utils/typingData'
@@ -18,6 +19,7 @@ const STATE_CLASS: Record<CharState['state'], string> = {
 }
 
 export default function TypingPage() {
+	const [startedAt, setStartedAt] = useState<number | null>(null)
 	const [isLoading, setIsLoading] = useState(true)
 	const [item, setItem] = useState<TypingData | null>(null)
 	const [sourceEnabled, setSourceEnabled] = useState(true)
@@ -102,31 +104,37 @@ export default function TypingPage() {
 	}
 
 	return (
-		<div className="w-full min-h-0 flex flex-col flex-1 items-end justify-center gap-2 mx-auto p-4">
-			<div className="flex items-center gap-2">
-				<Button onClick={handleReset} variant="outline">
-					<RotateCw />
-					Reiniciar
-				</Button>
+		<div className="w-full min-h-0 flex flex-col flex-1 justify-center gap-2 mx-auto p-4">
+			<div className="w-full flex items-center justify-between gap-2">
+				<div>
+					<Timer startedAt={startedAt} />
+				</div>
 
-				<VoiceSetup
-					enableSourceVoice={sourceEnabled}
-					onCheckedEnableSourceVoice={setSourceEnabled}
-					enableTargetVoice={targetEnabled}
-					onCheckedEnableTargetVoice={setTargetEnabled}
-					sourceVoiceVolume={sourceVoiceVolume}
-					onChangeSourceVoiceVolume={setSourceVoiceVolume}
-					targetVoiceVolume={targetVoiceVolume}
-					onChangeTargetVoiceVolume={setTargetVoiceVolume}
-					sourceVoiceURI={sourceVoiceURI}
-					onChangeSourceVoiceURI={setSourceVoiceURI}
-					targetVoiceURI={targetVoiceURI}
-					onChangeTargetVoiceURI={setTargetVoiceURI}
-					sourceRate={sourceRate}
-					onChangeSourceRate={setSourceRate}
-					targetRate={targetRate}
-					onChangeTargetRate={setTargetRate}
-				/>
+				<div className="flex items-center gap-2">
+					<Button onClick={handleReset} variant="outline">
+						<RotateCw />
+						Reiniciar
+					</Button>
+
+					<VoiceSetup
+						enableSourceVoice={sourceEnabled}
+						onCheckedEnableSourceVoice={setSourceEnabled}
+						enableTargetVoice={targetEnabled}
+						onCheckedEnableTargetVoice={setTargetEnabled}
+						sourceVoiceVolume={sourceVoiceVolume}
+						onChangeSourceVoiceVolume={setSourceVoiceVolume}
+						targetVoiceVolume={targetVoiceVolume}
+						onChangeTargetVoiceVolume={setTargetVoiceVolume}
+						sourceVoiceURI={sourceVoiceURI}
+						onChangeSourceVoiceURI={setSourceVoiceURI}
+						targetVoiceURI={targetVoiceURI}
+						onChangeTargetVoiceURI={setTargetVoiceURI}
+						sourceRate={sourceRate}
+						onChangeSourceRate={setSourceRate}
+						targetRate={targetRate}
+						onChangeTargetRate={setTargetRate}
+					/>
+				</div>
 			</div>
 
 			<div
@@ -161,7 +169,10 @@ export default function TypingPage() {
 			<input
 				ref={inputRef}
 				autoFocus
-				onInput={e => handleInput(e.currentTarget.value)}
+				onInput={e => {
+					if (startedAt === null) setStartedAt(Date.now())
+					handleInput(e.currentTarget.value)
+				}}
 				onCompositionEnd={e => handleInput(e.currentTarget.value)}
 				className="absolute opacity-0 w-px h-px"
 				aria-label="Typing input"
