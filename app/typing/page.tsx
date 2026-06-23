@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { RotateCw } from 'lucide-react'
 
-import { useMediaQuery } from '@/components/hooks/useMediaQuery'
 import { useSpeech } from '@/components/hooks/useSpeech'
 import { type CharState, useTyping } from '@/components/hooks/useTyping'
 import { Loading } from '@/components/Loading'
@@ -33,8 +32,6 @@ export default function TypingPage() {
 	const inputRef = useRef<HTMLInputElement>(null)
 	const seenRef = useRef<string[]>([])
 	const scrollRef = useRef<HTMLDivElement>(null)
-
-	const isMobile = useMediaQuery('(max-width: 768px)')
 
 	const { speak, speakTranslation } = useSpeech({
 		sourceLang: 'en',
@@ -90,12 +87,11 @@ export default function TypingPage() {
 			container.getBoundingClientRect().top +
 			container.scrollTop
 
-		const top = isMobile
-			? caretTop - container.clientHeight / 2 + caret.offsetHeight / 2 // center
-			: caretTop // start
+		const lineHeight = parseFloat(getComputedStyle(container).lineHeight)
+		const top = caretTop - lineHeight // start, com 1 linha acima inteira
 
 		container.scrollTo({ top, behavior: 'smooth' })
-	}, [isMobile, currentIndex])
+	}, [currentIndex])
 
 	const handleReset = () => {
 		reset()
