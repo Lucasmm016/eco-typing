@@ -7,7 +7,7 @@ export function Footer() {
 	return (
 		<footer className="w-full border-t border-border">
 			<div className="w-full max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-center px-2 py-4">
-				<span className="text-muted-foreground text-xs">2026 Lucas Matos Developer</span>
+				<span className="text-muted-foreground text-xs">2026 - Lucas Matos Developer</span>
 
 				<div className="flex items-center flex-wrap gap-2">
 					<Link
