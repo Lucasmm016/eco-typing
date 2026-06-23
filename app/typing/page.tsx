@@ -22,7 +22,8 @@ export default function TypingPage() {
 	const [item, setItem] = useState<TypingData | null>(null)
 	const [sourceEnabled, setSourceEnabled] = useState(true)
 	const [targetEnabled, setTargetEnabled] = useState(true)
-	const [voiceVolume, setVoiceVolume] = useState(100)
+	const [sourceVoiceVolume, setSourceVoiceVolume] = useState(100)
+	const [targetVoiceVolume, setTargetVoiceVolume] = useState(100)
 	const [sourceVoiceURI, setSourceVoiceURI] = useState<string>()
 	const [targetVoiceURI, setTargetVoiceURI] = useState<string>()
 	const [sourceRate, setSourceRate] = useState(1.25)
@@ -40,7 +41,8 @@ export default function TypingPage() {
 		targetVoiceURI,
 		sourceEnabled,
 		targetEnabled,
-		volume: voiceVolume,
+		sourceVolume: sourceVoiceVolume,
+		targetVolume: targetVoiceVolume,
 		sourceRate,
 		targetRate,
 	})
@@ -112,8 +114,10 @@ export default function TypingPage() {
 					onCheckedEnableSourceVoice={setSourceEnabled}
 					enableTargetVoice={targetEnabled}
 					onCheckedEnableTargetVoice={setTargetEnabled}
-					voiceVolume={voiceVolume}
-					onVoiceVolumeChange={setVoiceVolume}
+					sourceVoiceVolume={sourceVoiceVolume}
+					onChangeSourceVoiceVolume={setSourceVoiceVolume}
+					targetVoiceVolume={targetVoiceVolume}
+					onChangeTargetVoiceVolume={setTargetVoiceVolume}
 					sourceVoiceURI={sourceVoiceURI}
 					onChangeSourceVoiceURI={setSourceVoiceURI}
 					targetVoiceURI={targetVoiceURI}

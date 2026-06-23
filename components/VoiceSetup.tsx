@@ -29,8 +29,10 @@ interface Props {
 	onCheckedEnableSourceVoice: (checked: boolean) => void
 	enableTargetVoice: boolean
 	onCheckedEnableTargetVoice: (checked: boolean) => void
-	voiceVolume: number
-	onVoiceVolumeChange: (value: number) => void
+	sourceVoiceVolume: number
+	onChangeSourceVoiceVolume: (value: number) => void
+	targetVoiceVolume: number
+	onChangeTargetVoiceVolume: (value: number) => void
 	sourceVoiceURI?: string
 	onChangeSourceVoiceURI: (value: string) => void
 	targetVoiceURI?: string
@@ -43,9 +45,10 @@ interface Props {
 
 const COOKIE_NAME_SOURCE_VOICE_ENABLE = 'voice-source-enable'
 const COOKIE_NAME_TARGET_VOICE_ENABLE = 'voice-target-enable'
-const COOKIE_NAME_VOICE_VOLUME = 'voice-volume'
-const COOKIE_NAME_SOURCE_VOICE_URI = 'voice-source'
-const COOKIE_NAME_TARGET_VOICE_URI = 'voice-target'
+const COOKIE_NAME_SOURCE_VOICE_VOLUME = 'voice-source-volume'
+const COOKIE_NAME_TARGET_VOICE_VOLUME = 'voice-target-volume'
+const COOKIE_NAME_SOURCE_VOICE_URI = 'voice-source-uri'
+const COOKIE_NAME_TARGET_VOICE_URI = 'voice-target-uri'
 const COOKIE_NAME_SOURCE_RATE = 'voice-source-rate'
 const COOKIE_NAME_TARGET_RATE = 'voice-target-rate'
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30 // 30 dias
@@ -54,13 +57,24 @@ const SOURCE_LANGUAGE = 'en-US'
 const TARGET_LANGUAGE = 'pt-BR'
 const DEFAULT_VOICE_RATE = 1.25
 
+const keepOpen = (event: Event) => event.preventDefault()
+
+const RATES_MAP = [
+	{ value: '1', label: '1.0x' },
+	{ value: '1.25', label: '1.25x' },
+	{ value: '1.5', label: '1.5x' },
+	{ value: '2', label: '2.0x' },
+]
+
 export function VoiceSetup({
 	enableSourceVoice,
 	onCheckedEnableSourceVoice,
 	enableTargetVoice,
 	onCheckedEnableTargetVoice,
-	voiceVolume,
-	onVoiceVolumeChange,
+	sourceVoiceVolume,
+	onChangeSourceVoiceVolume,
+	targetVoiceVolume,
+	onChangeTargetVoiceVolume,
 	sourceVoiceURI,
 	onChangeSourceVoiceURI,
 	targetVoiceURI,
@@ -71,7 +85,9 @@ export function VoiceSetup({
 	onChangeTargetRate,
 }: Props) {
 	const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([])
-	const debouncedVoiceVolume = useDebounce(voiceVolume)
+
+	const debouncedSourceVoiceVolume = useDebounce(sourceVoiceVolume)
+	const debouncedTargetVoiceVolume = useDebounce(targetVoiceVolume)
 
 	useEffect(() => {
 		if (!('speechSynthesis' in window)) return
@@ -106,11 +122,22 @@ export function VoiceSetup({
 			onCheckedEnableTargetVoice(false)
 		}
 
-		const cookieVoiceVolume = getCookie(COOKIE_NAME_VOICE_VOLUME)
-		const savedVoiceVolume = cookieVoiceVolume ? Number(cookieVoiceVolume) : undefined
+		const cookieSourceVoiceVolume = getCookie(COOKIE_NAME_SOURCE_VOICE_VOLUME)
+		const savedSourceVoiceVolume = cookieSourceVoiceVolume
+			? Number(cookieSourceVoiceVolume)
+			: undefined
 
-		if (savedVoiceVolume !== undefined) {
-			onVoiceVolumeChange(savedVoiceVolume)
+		if (savedSourceVoiceVolume !== undefined) {
+			onChangeSourceVoiceVolume(savedSourceVoiceVolume)
+		}
+
+		const cookieTargetVoiceVolume = getCookie(COOKIE_NAME_TARGET_VOICE_VOLUME)
+		const savedTargetVoiceVolume = cookieTargetVoiceVolume
+			? Number(cookieTargetVoiceVolume)
+			: undefined
+
+		if (savedTargetVoiceVolume !== undefined) {
+			onChangeTargetVoiceVolume(savedTargetVoiceVolume)
 		}
 
 		const cookieSourceVoiceURI = getCookie(COOKIE_NAME_SOURCE_VOICE_URI)
@@ -151,15 +178,26 @@ export function VoiceSetup({
 	}, [enableTargetVoice])
 
 	useEffect(() => {
-		if (debouncedVoiceVolume === 100) {
-			deleteCookie(COOKIE_NAME_VOICE_VOLUME)
+		if (debouncedSourceVoiceVolume === 100) {
+			deleteCookie(COOKIE_NAME_SOURCE_VOICE_VOLUME)
 		} else {
-			setCookie(COOKIE_NAME_VOICE_VOLUME, debouncedVoiceVolume.toString(), {
+			setCookie(COOKIE_NAME_SOURCE_VOICE_VOLUME, debouncedSourceVoiceVolume.toString(), {
 				path: '/',
 				maxAge: COOKIE_MAX_AGE,
 			})
 		}
-	}, [debouncedVoiceVolume])
+	}, [debouncedSourceVoiceVolume])
+
+	useEffect(() => {
+		if (debouncedTargetVoiceVolume === 100) {
+			deleteCookie(COOKIE_NAME_TARGET_VOICE_VOLUME)
+		} else {
+			setCookie(COOKIE_NAME_TARGET_VOICE_VOLUME, debouncedTargetVoiceVolume.toString(), {
+				path: '/',
+				maxAge: COOKIE_MAX_AGE,
+			})
+		}
+	}, [debouncedTargetVoiceVolume])
 
 	useEffect(() => {
 		if (sourceVoiceURI) {
@@ -216,12 +254,14 @@ export function VoiceSetup({
 								<DropdownMenuCheckboxItem
 									checked={enableSourceVoice}
 									onCheckedChange={onCheckedEnableSourceVoice}
+									onSelect={keepOpen}
 								>
 									Voz nativa
 								</DropdownMenuCheckboxItem>
 								<DropdownMenuCheckboxItem
 									checked={enableTargetVoice}
 									onCheckedChange={onCheckedEnableTargetVoice}
+									onSelect={keepOpen}
 								>
 									Voz de tradução
 								</DropdownMenuCheckboxItem>
@@ -233,11 +273,21 @@ export function VoiceSetup({
 						<DropdownMenuSubTrigger>Volume</DropdownMenuSubTrigger>
 						<DropdownMenuPortal>
 							<DropdownMenuSubContent className="w-48 max-w-full">
-								<DropdownMenuLabel>Volume geral {voiceVolume}%</DropdownMenuLabel>
-								<DropdownMenuItem className="p-4">
+								<DropdownMenuLabel>Voz nativa: {sourceVoiceVolume}%</DropdownMenuLabel>
+								<DropdownMenuItem className="p-4" onSelect={keepOpen}>
 									<Slider
-										value={[voiceVolume]}
-										onValueChange={([value]) => onVoiceVolumeChange(value)}
+										value={[sourceVoiceVolume]}
+										onValueChange={([value]) => onChangeSourceVoiceVolume(value)}
+										max={100}
+										step={1}
+										className="mx-auto w-full"
+									/>
+								</DropdownMenuItem>
+								<DropdownMenuLabel>Voz de tradução: {targetVoiceVolume}%</DropdownMenuLabel>
+								<DropdownMenuItem className="p-4" onSelect={keepOpen}>
+									<Slider
+										value={[targetVoiceVolume]}
+										onValueChange={([value]) => onChangeTargetVoiceVolume(value)}
 										max={100}
 										step={1}
 										className="mx-auto w-full"
@@ -259,7 +309,11 @@ export function VoiceSetup({
 									{voices
 										.filter(i => i.lang.toLowerCase().startsWith(SOURCE_LANGUAGE.toLowerCase()))
 										.map(voice => (
-											<DropdownMenuRadioItem key={voice.voiceURI} value={voice.voiceURI}>
+											<DropdownMenuRadioItem
+												key={voice.voiceURI}
+												value={voice.voiceURI}
+												onSelect={keepOpen}
+											>
 												{voice.name}
 											</DropdownMenuRadioItem>
 										))}
@@ -280,7 +334,11 @@ export function VoiceSetup({
 									{voices
 										.filter(i => i.lang.toLowerCase().startsWith(TARGET_LANGUAGE.toLowerCase()))
 										.map(voice => (
-											<DropdownMenuRadioItem key={voice.voiceURI} value={voice.voiceURI}>
+											<DropdownMenuRadioItem
+												key={voice.voiceURI}
+												value={voice.voiceURI}
+												onSelect={keepOpen}
+											>
 												{voice.name}
 											</DropdownMenuRadioItem>
 										))}
@@ -298,20 +356,22 @@ export function VoiceSetup({
 									value={String(sourceRate)}
 									onValueChange={value => onChangeSourceRate(Number(value))}
 								>
-									<DropdownMenuRadioItem value="1">1.0x</DropdownMenuRadioItem>
-									<DropdownMenuRadioItem value="1.25">1.25x</DropdownMenuRadioItem>
-									<DropdownMenuRadioItem value="1.5">1.5x</DropdownMenuRadioItem>
-									<DropdownMenuRadioItem value="2">2.0x</DropdownMenuRadioItem>
+									{RATES_MAP.map(item => (
+										<DropdownMenuRadioItem key={item.value} value={item.value} onSelect={keepOpen}>
+											{item.label}
+										</DropdownMenuRadioItem>
+									))}
 								</DropdownMenuRadioGroup>
 								<DropdownMenuLabel>Voz de tradução</DropdownMenuLabel>
 								<DropdownMenuRadioGroup
 									value={String(targetRate)}
 									onValueChange={value => onChangeTargetRate(Number(value))}
 								>
-									<DropdownMenuRadioItem value="1">1.0x</DropdownMenuRadioItem>
-									<DropdownMenuRadioItem value="1.25">1.25x</DropdownMenuRadioItem>
-									<DropdownMenuRadioItem value="1.5">1.5x</DropdownMenuRadioItem>
-									<DropdownMenuRadioItem value="2">2.0x</DropdownMenuRadioItem>
+									{RATES_MAP.map(item => (
+										<DropdownMenuRadioItem key={item.value} value={item.value} onSelect={keepOpen}>
+											{item.label}
+										</DropdownMenuRadioItem>
+									))}
 								</DropdownMenuRadioGroup>
 							</DropdownMenuSubContent>
 						</DropdownMenuPortal>

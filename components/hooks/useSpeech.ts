@@ -7,7 +7,8 @@ interface Props {
 	targetLang: string
 	sourceEnabled?: boolean
 	targetEnabled?: boolean
-	volume?: number
+	sourceVolume?: number
+	targetVolume?: number
 	sourceVoiceURI?: string
 	targetVoiceURI?: string
 	sourceRate?: number
@@ -22,7 +23,8 @@ export function useSpeech({
 	targetLang,
 	sourceEnabled = true,
 	targetEnabled = true,
-	volume = DEFAULT_VOLUME,
+	sourceVolume = DEFAULT_VOLUME,
+	targetVolume = DEFAULT_VOLUME,
 	sourceVoiceURI,
 	targetVoiceURI,
 	sourceRate = DEFAULT_RATE,
@@ -41,37 +43,36 @@ export function useSpeech({
 	}, [])
 
 	const speakWith = useCallback(
-		(text: string, lang: string, rate: number, voiceURI?: string) => {
+		(text: string, lang: string, rate: number, volume: number, voiceURI?: string) => {
 			if (!('speechSynthesis' in window)) return
 
 			const voice = voices.find(v => v.voiceURI === voiceURI)
 			const utterance = new SpeechSynthesisUtterance(text)
 
 			utterance.lang = voice?.lang ?? lang
-
 			if (voice) utterance.voice = voice
 
 			utterance.volume = volume / 100
 			utterance.rate = rate
 			window.speechSynthesis.speak(utterance)
 		},
-		[voices, volume],
+		[voices],
 	)
 
 	const speak = useCallback(
 		(text: string) => {
 			if (!sourceEnabled) return
-			speakWith(text, sourceLang, sourceRate, sourceVoiceURI)
+			speakWith(text, sourceLang, sourceRate, sourceVolume, sourceVoiceURI)
 		},
-		[speakWith, sourceLang, sourceVoiceURI, sourceEnabled, sourceRate],
+		[speakWith, sourceLang, sourceVoiceURI, sourceEnabled, sourceRate, sourceVolume],
 	)
 
 	const speakTranslation = useCallback(
 		(text: string) => {
 			if (!targetEnabled) return
-			speakWith(text, targetLang, targetRate, targetVoiceURI)
+			speakWith(text, targetLang, targetRate, targetVolume, targetVoiceURI)
 		},
-		[speakWith, targetLang, targetVoiceURI, targetEnabled, targetRate],
+		[speakWith, targetLang, targetVoiceURI, targetEnabled, targetRate, targetVolume],
 	)
 
 	return { speak, speakTranslation }
