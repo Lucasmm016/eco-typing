@@ -90,26 +90,6 @@ export function VoiceSetup({
 	const debouncedTargetVoiceVolume = useDebounce(targetVoiceVolume)
 
 	useEffect(() => {
-		if (!('speechSynthesis' in window)) return
-
-		const load = () =>
-			setVoices(
-				window.speechSynthesis
-					.getVoices()
-					.filter(
-						v =>
-							v.lang.toLowerCase().startsWith(SOURCE_LANGUAGE.toLowerCase()) ||
-							v.lang.toLowerCase().startsWith(TARGET_LANGUAGE.toLowerCase()),
-					),
-			)
-
-		load()
-		// addEventListener (não onvoiceschanged=) para não conflitar com outras instâncias
-		window.speechSynthesis.addEventListener('voiceschanged', load)
-		return () => window.speechSynthesis.removeEventListener('voiceschanged', load)
-	}, [])
-
-	useEffect(() => {
 		const cookieSourceVoice = getCookie(COOKIE_NAME_SOURCE_VOICE_ENABLE)
 
 		if (cookieSourceVoice === 'disabled') {
@@ -159,6 +139,26 @@ export function VoiceSetup({
 		if (cookieTargetRate) onChangeTargetRate(Number(cookieTargetRate))
 
 		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
+
+	useEffect(() => {
+		if (!('speechSynthesis' in window)) return
+
+		const load = () =>
+			setVoices(
+				window.speechSynthesis
+					.getVoices()
+					.filter(
+						v =>
+							v.lang.toLowerCase().startsWith(SOURCE_LANGUAGE.toLowerCase()) ||
+							v.lang.toLowerCase().startsWith(TARGET_LANGUAGE.toLowerCase()),
+					),
+			)
+
+		load()
+		// addEventListener (não onvoiceschanged=) para não conflitar com outras instâncias
+		window.speechSynthesis.addEventListener('voiceschanged', load)
+		return () => window.speechSynthesis.removeEventListener('voiceschanged', load)
 	}, [])
 
 	useEffect(() => {
@@ -237,6 +237,14 @@ export function VoiceSetup({
 		}
 	}, [targetRate])
 
+	const sourceVoices = voices.filter(i =>
+		i.lang.toLowerCase().startsWith(SOURCE_LANGUAGE.toLowerCase()),
+	)
+
+	const targetVoices = voices.filter(i =>
+		i.lang.toLowerCase().startsWith(TARGET_LANGUAGE.toLowerCase()),
+	)
+
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
@@ -297,18 +305,17 @@ export function VoiceSetup({
 						</DropdownMenuPortal>
 					</DropdownMenuSub>
 
-					<DropdownMenuSub>
-						<DropdownMenuSubTrigger>Voz nativa</DropdownMenuSubTrigger>
-						<DropdownMenuPortal>
-							<DropdownMenuSubContent>
-								<DropdownMenuLabel>Escolha uma voz</DropdownMenuLabel>
-								<DropdownMenuRadioGroup
-									value={sourceVoiceURI}
-									onValueChange={onChangeSourceVoiceURI}
-								>
-									{voices
-										.filter(i => i.lang.toLowerCase().startsWith(SOURCE_LANGUAGE.toLowerCase()))
-										.map(voice => (
+					{sourceVoices.length > 0 && (
+						<DropdownMenuSub>
+							<DropdownMenuSubTrigger>Voz nativa</DropdownMenuSubTrigger>
+							<DropdownMenuPortal>
+								<DropdownMenuSubContent>
+									<DropdownMenuLabel>Escolha uma voz</DropdownMenuLabel>
+									<DropdownMenuRadioGroup
+										value={sourceVoiceURI}
+										onValueChange={onChangeSourceVoiceURI}
+									>
+										{sourceVoices.map(voice => (
 											<DropdownMenuRadioItem
 												key={voice.voiceURI}
 												value={voice.voiceURI}
@@ -317,23 +324,23 @@ export function VoiceSetup({
 												{voice.name}
 											</DropdownMenuRadioItem>
 										))}
-								</DropdownMenuRadioGroup>
-							</DropdownMenuSubContent>
-						</DropdownMenuPortal>
-					</DropdownMenuSub>
+									</DropdownMenuRadioGroup>
+								</DropdownMenuSubContent>
+							</DropdownMenuPortal>
+						</DropdownMenuSub>
+					)}
 
-					<DropdownMenuSub>
-						<DropdownMenuSubTrigger>Voz de tradução</DropdownMenuSubTrigger>
-						<DropdownMenuPortal>
-							<DropdownMenuSubContent>
-								<DropdownMenuLabel>Escolha uma voz</DropdownMenuLabel>
-								<DropdownMenuRadioGroup
-									value={targetVoiceURI}
-									onValueChange={onChangeTargetVoiceURI}
-								>
-									{voices
-										.filter(i => i.lang.toLowerCase().startsWith(TARGET_LANGUAGE.toLowerCase()))
-										.map(voice => (
+					{targetVoices.length > 0 && (
+						<DropdownMenuSub>
+							<DropdownMenuSubTrigger>Voz de tradução</DropdownMenuSubTrigger>
+							<DropdownMenuPortal>
+								<DropdownMenuSubContent>
+									<DropdownMenuLabel>Escolha uma voz</DropdownMenuLabel>
+									<DropdownMenuRadioGroup
+										value={targetVoiceURI}
+										onValueChange={onChangeTargetVoiceURI}
+									>
+										{targetVoices.map(voice => (
 											<DropdownMenuRadioItem
 												key={voice.voiceURI}
 												value={voice.voiceURI}
@@ -342,10 +349,11 @@ export function VoiceSetup({
 												{voice.name}
 											</DropdownMenuRadioItem>
 										))}
-								</DropdownMenuRadioGroup>
-							</DropdownMenuSubContent>
-						</DropdownMenuPortal>
-					</DropdownMenuSub>
+									</DropdownMenuRadioGroup>
+								</DropdownMenuSubContent>
+							</DropdownMenuPortal>
+						</DropdownMenuSub>
+					)}
 
 					<DropdownMenuSub>
 						<DropdownMenuSubTrigger>Velocidade</DropdownMenuSubTrigger>
