@@ -19,6 +19,7 @@ const STATE_CLASS: Record<CharState['state'], string> = {
 
 export default function TypingPage() {
 	const [startedAt, setStartedAt] = useState<number | null>(null)
+	const [isFocused, setIsFocused] = useState(false)
 	const [isLoading, setIsLoading] = useState(true)
 	const [item, setItem] = useState<TypingData | null>(null)
 	const [sourceEnabled, setSourceEnabled] = useState(true)
@@ -152,7 +153,7 @@ export default function TypingPage() {
 								ref={current ? caretRef : null}
 								className={`relative ${STATE_CLASS[state]}`}
 							>
-								{current && (
+								{current && isFocused && (
 									<span className="absolute left-0 top-0 bottom-0 w-0.5 bg-primary animate-caret-blink" />
 								)}
 								{char}
@@ -165,6 +166,8 @@ export default function TypingPage() {
 			<input
 				ref={inputRef}
 				autoFocus
+				onFocus={() => setIsFocused(true)}
+				onBlur={() => setIsFocused(false)}
 				onInput={e => {
 					if (startedAt === null) setStartedAt(Date.now())
 					handleInput(e.currentTarget.value)
