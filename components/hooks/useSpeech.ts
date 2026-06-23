@@ -14,19 +14,19 @@ interface Props {
 	targetRate?: number
 }
 
-const DEFAULT_VOICE_VOLUME = 100 // 0 a 100 — volume da voz
-const DEFAULT_VOICE_RATE = 1.25 // velocidade voz nativa
+const DEFAULT_VOLUME = 100 // 0 a 100 — volume da voz
+const DEFAULT_RATE = 1.25 // velocidade voz nativa
 
 export function useSpeech({
 	sourceLang,
 	targetLang,
 	sourceEnabled = true,
 	targetEnabled = true,
-	volume = DEFAULT_VOICE_VOLUME,
+	volume = DEFAULT_VOLUME,
 	sourceVoiceURI,
 	targetVoiceURI,
-	sourceRate = DEFAULT_VOICE_RATE,
-	targetRate = DEFAULT_VOICE_RATE,
+	sourceRate = DEFAULT_RATE,
+	targetRate = DEFAULT_RATE,
 }: Props) {
 	const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([])
 

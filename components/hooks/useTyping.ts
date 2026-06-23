@@ -6,6 +6,7 @@ interface Props {
 	onWordComplete?: (word: string) => void
 	onChunkComplete?: (index: number) => void
 	onComplete?: () => void
+	volume?: number
 }
 
 export type CharState = {
@@ -17,8 +18,10 @@ export type CharState = {
 const KEY_SPRITE = [
 	0.04, 0.8, 1.61, 2.43, 3.23, 4.05, 4.84, 5.66, 6.47, 7.26, 8.08, 8.92, 9.73, 10.56, 11.29, 12.1,
 ]
+
 const KEY_CLIP = 0.2
-const VOLUME = 0.1
+const VOLUME_BASE = 0.1 // 0 a 1
+const DEFAULT_VOLUME = 75 // 0 a 100
 
 // ´ ` e aspas tipográficas → apóstrofo/aspas retos
 const normalize = (ch: string) =>
@@ -26,7 +29,7 @@ const normalize = (ch: string) =>
 
 export function useTyping(
 	chunks: string[],
-	{ onWordComplete, onChunkComplete, onComplete }: Props = {},
+	{ onWordComplete, onChunkComplete, onComplete, volume = DEFAULT_VOLUME }: Props = {},
 ) {
 	const [typed, setTyped] = useState('')
 	const [maxLen, setMaxLen] = useState(0)
@@ -72,7 +75,7 @@ export function useTyping(
 		ctxRef.current = ctx
 
 		const gain = ctx.createGain()
-		gain.gain.value = VOLUME
+		gain.gain.value = VOLUME_BASE
 		gain.connect(ctx.destination)
 		gainRef.current = gain
 
@@ -92,6 +95,10 @@ export function useTyping(
 			ctx.close()
 		}
 	}, [])
+
+	useEffect(() => {
+		if (gainRef.current) gainRef.current.gain.value = VOLUME_BASE * (volume / 100)
+	}, [volume])
 
 	const play = (buffer: AudioBuffer | null, offset = 0, duration?: number) => {
 		const ctx = ctxRef.current
