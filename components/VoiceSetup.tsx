@@ -35,17 +35,24 @@ interface Props {
 	onChangeSourceVoiceURI: (value: string) => void
 	targetVoiceURI?: string
 	onChangeTargetVoiceURI: (value: string) => void
+	sourceRate?: number
+	onChangeSourceRate: (value: number) => void
+	targetRate?: number
+	onChangeTargetRate: (value: number) => void
 }
 
-const COOKIE_NAME_ENABLE_SOURCE_VOICE = 'voice-source-enable'
-const COOKIE_NAME_ENABLE_TARGET_VOICE = 'voice-target-enable'
+const COOKIE_NAME_SOURCE_VOICE_ENABLE = 'voice-source-enable'
+const COOKIE_NAME_TARGET_VOICE_ENABLE = 'voice-target-enable'
 const COOKIE_NAME_VOICE_VOLUME = 'voice-volume'
 const COOKIE_NAME_SOURCE_VOICE_URI = 'voice-source'
 const COOKIE_NAME_TARGET_VOICE_URI = 'voice-target'
+const COOKIE_NAME_SOURCE_RATE = 'voice-source-rate'
+const COOKIE_NAME_TARGET_RATE = 'voice-target-rate'
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30 // 30 dias
 
 const SOURCE_LANGUAGE = 'en-US'
 const TARGET_LANGUAGE = 'pt-BR'
+const DEFAULT_VOICE_RATE = 1.25
 
 export function VoiceSetup({
 	enableSourceVoice,
@@ -58,6 +65,10 @@ export function VoiceSetup({
 	onChangeSourceVoiceURI,
 	targetVoiceURI,
 	onChangeTargetVoiceURI,
+	sourceRate,
+	onChangeSourceRate,
+	targetRate,
+	onChangeTargetRate,
 }: Props) {
 	const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([])
 	const debouncedVoiceVolume = useDebounce(voiceVolume)
@@ -83,13 +94,13 @@ export function VoiceSetup({
 	}, [])
 
 	useEffect(() => {
-		const cookieSourceVoice = getCookie(COOKIE_NAME_ENABLE_SOURCE_VOICE)
+		const cookieSourceVoice = getCookie(COOKIE_NAME_SOURCE_VOICE_ENABLE)
 
 		if (cookieSourceVoice === 'disabled') {
 			onCheckedEnableSourceVoice(false)
 		}
 
-		const cookieTargetVoice = getCookie(COOKIE_NAME_ENABLE_TARGET_VOICE)
+		const cookieTargetVoice = getCookie(COOKIE_NAME_TARGET_VOICE_ENABLE)
 
 		if (cookieTargetVoice === 'disabled') {
 			onCheckedEnableTargetVoice(false)
@@ -114,22 +125,28 @@ export function VoiceSetup({
 			onChangeTargetVoiceURI(cookieTargetVoiceURI)
 		}
 
+		const cookieSourceRate = getCookie(COOKIE_NAME_SOURCE_RATE)
+		if (cookieSourceRate) onChangeSourceRate(Number(cookieSourceRate))
+
+		const cookieTargetRate = getCookie(COOKIE_NAME_TARGET_RATE)
+		if (cookieTargetRate) onChangeTargetRate(Number(cookieTargetRate))
+
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
 	useEffect(() => {
 		if (enableSourceVoice) {
-			deleteCookie(COOKIE_NAME_ENABLE_SOURCE_VOICE)
+			deleteCookie(COOKIE_NAME_SOURCE_VOICE_ENABLE)
 		} else {
-			setCookie(COOKIE_NAME_ENABLE_SOURCE_VOICE, 'disabled', { path: '/', maxAge: COOKIE_MAX_AGE })
+			setCookie(COOKIE_NAME_SOURCE_VOICE_ENABLE, 'disabled', { path: '/', maxAge: COOKIE_MAX_AGE })
 		}
 	}, [enableSourceVoice])
 
 	useEffect(() => {
 		if (enableTargetVoice) {
-			deleteCookie(COOKIE_NAME_ENABLE_TARGET_VOICE)
+			deleteCookie(COOKIE_NAME_TARGET_VOICE_ENABLE)
 		} else {
-			setCookie(COOKIE_NAME_ENABLE_TARGET_VOICE, 'disabled', { path: '/', maxAge: COOKIE_MAX_AGE })
+			setCookie(COOKIE_NAME_TARGET_VOICE_ENABLE, 'disabled', { path: '/', maxAge: COOKIE_MAX_AGE })
 		}
 	}, [enableTargetVoice])
 
@@ -159,6 +176,28 @@ export function VoiceSetup({
 			deleteCookie(COOKIE_NAME_TARGET_VOICE_URI)
 		}
 	}, [targetVoiceURI])
+
+	useEffect(() => {
+		if (!sourceRate || sourceRate === DEFAULT_VOICE_RATE) {
+			deleteCookie(COOKIE_NAME_SOURCE_RATE)
+		} else {
+			setCookie(COOKIE_NAME_SOURCE_RATE, sourceRate.toString(), {
+				path: '/',
+				maxAge: COOKIE_MAX_AGE,
+			})
+		}
+	}, [sourceRate])
+
+	useEffect(() => {
+		if (!targetRate || targetRate === DEFAULT_VOICE_RATE) {
+			deleteCookie(COOKIE_NAME_TARGET_RATE)
+		} else {
+			setCookie(COOKIE_NAME_TARGET_RATE, targetRate.toString(), {
+				path: '/',
+				maxAge: COOKIE_MAX_AGE,
+			})
+		}
+	}, [targetRate])
 
 	return (
 		<DropdownMenu>
@@ -245,6 +284,34 @@ export function VoiceSetup({
 												{voice.name}
 											</DropdownMenuRadioItem>
 										))}
+								</DropdownMenuRadioGroup>
+							</DropdownMenuSubContent>
+						</DropdownMenuPortal>
+					</DropdownMenuSub>
+
+					<DropdownMenuSub>
+						<DropdownMenuSubTrigger>Velocidade</DropdownMenuSubTrigger>
+						<DropdownMenuPortal>
+							<DropdownMenuSubContent>
+								<DropdownMenuLabel>Voz nativa</DropdownMenuLabel>
+								<DropdownMenuRadioGroup
+									value={String(sourceRate)}
+									onValueChange={value => onChangeSourceRate(Number(value))}
+								>
+									<DropdownMenuRadioItem value="1">1.0x</DropdownMenuRadioItem>
+									<DropdownMenuRadioItem value="1.25">1.25x</DropdownMenuRadioItem>
+									<DropdownMenuRadioItem value="1.5">1.5x</DropdownMenuRadioItem>
+									<DropdownMenuRadioItem value="2">2.0x</DropdownMenuRadioItem>
+								</DropdownMenuRadioGroup>
+								<DropdownMenuLabel>Voz de tradução</DropdownMenuLabel>
+								<DropdownMenuRadioGroup
+									value={String(targetRate)}
+									onValueChange={value => onChangeTargetRate(Number(value))}
+								>
+									<DropdownMenuRadioItem value="1">1.0x</DropdownMenuRadioItem>
+									<DropdownMenuRadioItem value="1.25">1.25x</DropdownMenuRadioItem>
+									<DropdownMenuRadioItem value="1.5">1.5x</DropdownMenuRadioItem>
+									<DropdownMenuRadioItem value="2">2.0x</DropdownMenuRadioItem>
 								</DropdownMenuRadioGroup>
 							</DropdownMenuSubContent>
 						</DropdownMenuPortal>

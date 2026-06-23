@@ -25,6 +25,8 @@ export default function TypingPage() {
 	const [voiceVolume, setVoiceVolume] = useState(100)
 	const [sourceVoiceURI, setSourceVoiceURI] = useState<string>()
 	const [targetVoiceURI, setTargetVoiceURI] = useState<string>()
+	const [sourceRate, setSourceRate] = useState(1.25)
+	const [targetRate, setTargetRate] = useState(1.25)
 	const inputRef = useRef<HTMLInputElement>(null)
 	const seenRef = useRef<string[]>([])
 	const scrollRef = useRef<HTMLDivElement>(null)
@@ -39,6 +41,8 @@ export default function TypingPage() {
 		sourceEnabled,
 		targetEnabled,
 		volume: voiceVolume,
+		sourceRate,
+		targetRate,
 	})
 
 	const fetchNext = useCallback(async () => {
@@ -114,6 +118,10 @@ export default function TypingPage() {
 					onChangeSourceVoiceURI={setSourceVoiceURI}
 					targetVoiceURI={targetVoiceURI}
 					onChangeTargetVoiceURI={setTargetVoiceURI}
+					sourceRate={sourceRate}
+					onChangeSourceRate={setSourceRate}
+					targetRate={targetRate}
+					onChangeTargetRate={setTargetRate}
 				/>
 			</div>
 

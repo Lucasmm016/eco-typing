@@ -10,20 +10,23 @@ interface Props {
 	volume?: number
 	sourceVoiceURI?: string
 	targetVoiceURI?: string
+	sourceRate?: number
+	targetRate?: number
 }
 
-const VOICE_VOLUME = 100 // 0 a 100 — volume da voz
-const SOURCE_RATE = 1.5 // velocidade voz nativa
-const TARGET_RATE = 1.5 // velocidade voz de tradução
+const DEFAULT_VOICE_VOLUME = 100 // 0 a 100 — volume da voz
+const DEFAULT_VOICE_RATE = 1.25 // velocidade voz nativa
 
 export function useSpeech({
 	sourceLang,
 	targetLang,
 	sourceEnabled = true,
 	targetEnabled = true,
-	volume = VOICE_VOLUME,
+	volume = DEFAULT_VOICE_VOLUME,
 	sourceVoiceURI,
 	targetVoiceURI,
+	sourceRate = DEFAULT_VOICE_RATE,
+	targetRate = DEFAULT_VOICE_RATE,
 }: Props) {
 	const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([])
 
@@ -58,17 +61,17 @@ export function useSpeech({
 	const speak = useCallback(
 		(text: string) => {
 			if (!sourceEnabled) return
-			speakWith(text, sourceLang, SOURCE_RATE, sourceVoiceURI)
+			speakWith(text, sourceLang, sourceRate, sourceVoiceURI)
 		},
-		[speakWith, sourceLang, sourceVoiceURI, sourceEnabled],
+		[speakWith, sourceLang, sourceVoiceURI, sourceEnabled, sourceRate],
 	)
 
 	const speakTranslation = useCallback(
 		(text: string) => {
 			if (!targetEnabled) return
-			speakWith(text, targetLang, TARGET_RATE, targetVoiceURI)
+			speakWith(text, targetLang, targetRate, targetVoiceURI)
 		},
-		[speakWith, targetLang, targetVoiceURI, targetEnabled],
+		[speakWith, targetLang, targetVoiceURI, targetEnabled, targetRate],
 	)
 
 	return { speak, speakTranslation }
