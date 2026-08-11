@@ -68,11 +68,22 @@ export function useSpeech({
 	)
 
 	const speakTranslation = useCallback(
-		(text: string) => {
+		(sourceText: string, translatedText: string) => {
 			if (!targetEnabled) return
-			speakWith(text, targetLang, targetRate, targetVolume, targetVoiceURI)
+			const isEnglish = targetLang.toLowerCase().startsWith('en')
+			const text = isEnglish ? sourceText : translatedText
+			const voiceURI = isEnglish ? sourceVoiceURI : targetVoiceURI
+			speakWith(text, targetLang, targetRate, targetVolume, voiceURI)
 		},
-		[speakWith, targetLang, targetVoiceURI, targetEnabled, targetRate, targetVolume],
+		[
+			speakWith,
+			targetLang,
+			sourceVoiceURI,
+			targetVoiceURI,
+			targetEnabled,
+			targetRate,
+			targetVolume,
+		],
 	)
 
 	return { speak, speakTranslation }

@@ -28,6 +28,7 @@ export default function TypingPage() {
 	const [targetVoiceVolume, setTargetVoiceVolume] = useState(100)
 	const [sourceVoiceURI, setSourceVoiceURI] = useState<string>()
 	const [targetVoiceURI, setTargetVoiceURI] = useState<string>()
+	const [targetLang, setTargetLang] = useState('pt-BR')
 	const [sourceRate, setSourceRate] = useState(1.25)
 	const [targetRate, setTargetRate] = useState(1.25)
 	const inputRef = useRef<HTMLInputElement>(null)
@@ -35,8 +36,8 @@ export default function TypingPage() {
 	const scrollRef = useRef<HTMLDivElement>(null)
 
 	const { speak, speakTranslation } = useSpeech({
-		sourceLang: 'en',
-		targetLang: 'pt-BR',
+		sourceLang: 'en-US',
+		targetLang,
 		sourceVoiceURI,
 		targetVoiceURI,
 		sourceEnabled,
@@ -67,7 +68,7 @@ export default function TypingPage() {
 
 	const { chars, handleInput, reset } = useTyping(chunks, {
 		onWordComplete: word => speak(word),
-		onChunkComplete: i => item && speakTranslation(item.data[i][1]),
+		onChunkComplete: i => item && speakTranslation(item.data[i][0], item.data[i][1]),
 		onComplete: () => {
 			if (item) seenRef.current = [...seenRef.current, item.id]
 			setIsLoading(true)
@@ -126,6 +127,8 @@ export default function TypingPage() {
 						onChangeSourceVoiceURI={setSourceVoiceURI}
 						targetVoiceURI={targetVoiceURI}
 						onChangeTargetVoiceURI={setTargetVoiceURI}
+						targetLang={targetLang}
+						onChangeTargetLang={setTargetLang}
 						sourceRate={sourceRate}
 						onChangeSourceRate={setSourceRate}
 						targetRate={targetRate}

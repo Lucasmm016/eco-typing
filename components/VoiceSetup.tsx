@@ -37,6 +37,8 @@ interface Props {
 	onChangeSourceVoiceURI: (value: string) => void
 	targetVoiceURI?: string
 	onChangeTargetVoiceURI: (value: string) => void
+	targetLang?: string
+	onChangeTargetLang: (value: string) => void
 	sourceRate?: number
 	onChangeSourceRate: (value: number) => void
 	targetRate?: number
@@ -49,12 +51,14 @@ const COOKIE_NAME_SOURCE_VOICE_VOLUME = 'voice-source-volume'
 const COOKIE_NAME_TARGET_VOICE_VOLUME = 'voice-target-volume'
 const COOKIE_NAME_SOURCE_VOICE_URI = 'voice-source-uri'
 const COOKIE_NAME_TARGET_VOICE_URI = 'voice-target-uri'
+const COOKIE_NAME_TARGET_LANG = 'voice-target-lang'
 const COOKIE_NAME_SOURCE_RATE = 'voice-source-rate'
 const COOKIE_NAME_TARGET_RATE = 'voice-target-rate'
+
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30 // 30 dias
 
-const SOURCE_LANGUAGE = 'en-US'
-const TARGET_LANGUAGE = 'pt-BR'
+const DEFAULT_SOURCE_LANGUAGE = 'en-US'
+const DEFAULT_TARGET_LANGUAGE = 'pt-BR'
 const DEFAULT_VOICE_RATE = 1.25
 
 const keepOpen = (event: Event) => event.preventDefault()
@@ -80,6 +84,8 @@ export function VoiceSetup({
 	onChangeSourceVoiceURI,
 	targetVoiceURI,
 	onChangeTargetVoiceURI,
+	targetLang,
+	onChangeTargetLang,
 	sourceRate,
 	onChangeSourceRate,
 	targetRate,
@@ -133,6 +139,9 @@ export function VoiceSetup({
 			onChangeTargetVoiceURI(cookieTargetVoiceURI)
 		}
 
+		const cookieTargetLang = getCookie(COOKIE_NAME_TARGET_LANG)
+		if (cookieTargetLang) onChangeTargetLang(cookieTargetLang)
+
 		const cookieSourceRate = getCookie(COOKIE_NAME_SOURCE_RATE)
 		if (cookieSourceRate) onChangeSourceRate(Number(cookieSourceRate))
 
@@ -151,8 +160,8 @@ export function VoiceSetup({
 					.getVoices()
 					.filter(
 						v =>
-							v.lang.toLowerCase().startsWith(SOURCE_LANGUAGE.toLowerCase()) ||
-							v.lang.toLowerCase().startsWith(TARGET_LANGUAGE.toLowerCase()),
+							v.lang.toLowerCase().startsWith(DEFAULT_SOURCE_LANGUAGE.toLowerCase()) ||
+							v.lang.toLowerCase().startsWith(DEFAULT_TARGET_LANGUAGE.toLowerCase()),
 					),
 			)
 
@@ -217,6 +226,17 @@ export function VoiceSetup({
 	}, [targetVoiceURI])
 
 	useEffect(() => {
+		if (!targetLang || targetLang === DEFAULT_TARGET_LANGUAGE) {
+			deleteCookie(COOKIE_NAME_TARGET_LANG)
+		} else {
+			setCookie(COOKIE_NAME_TARGET_LANG, targetLang, {
+				path: '/',
+				maxAge: COOKIE_MAX_AGE,
+			})
+		}
+	}, [targetLang])
+
+	useEffect(() => {
 		if (!sourceRate || sourceRate === DEFAULT_VOICE_RATE) {
 			deleteCookie(COOKIE_NAME_SOURCE_RATE)
 		} else {
@@ -238,12 +258,16 @@ export function VoiceSetup({
 		}
 	}, [targetRate])
 
-	const sourceVoices = voices.filter(i =>
-		i.lang.toLowerCase().startsWith(SOURCE_LANGUAGE.toLowerCase()),
+	const sourceVoices = voices.filter(
+		(i, index, arr) =>
+			i.lang.toLowerCase().startsWith(DEFAULT_SOURCE_LANGUAGE.toLowerCase()) &&
+			arr.findIndex(v => v.voiceURI === i.voiceURI) === index,
 	)
 
-	const targetVoices = voices.filter(i =>
-		i.lang.toLowerCase().startsWith(TARGET_LANGUAGE.toLowerCase()),
+	const targetVoices = voices.filter(
+		(i, index, arr) =>
+			i.lang.toLowerCase().startsWith(DEFAULT_TARGET_LANGUAGE.toLowerCase()) &&
+			arr.findIndex(v => v.voiceURI === i.voiceURI) === index,
 	)
 
 	return (
@@ -355,6 +379,26 @@ export function VoiceSetup({
 							</DropdownMenuPortal>
 						</DropdownMenuSub>
 					)}
+
+					<DropdownMenuSub>
+						<DropdownMenuSubTrigger>Língua</DropdownMenuSubTrigger>
+						<DropdownMenuPortal>
+							<DropdownMenuSubContent>
+								<DropdownMenuLabel>Voz de tradução</DropdownMenuLabel>
+								<DropdownMenuRadioGroup
+									value={targetLang}
+									onValueChange={value => onChangeTargetLang(value)}
+								>
+									<DropdownMenuRadioItem value="en-US" onSelect={keepOpen}>
+										en-US
+									</DropdownMenuRadioItem>
+									<DropdownMenuRadioItem value="pt-BR" onSelect={keepOpen}>
+										pt-BR
+									</DropdownMenuRadioItem>
+								</DropdownMenuRadioGroup>
+							</DropdownMenuSubContent>
+						</DropdownMenuPortal>
+					</DropdownMenuSub>
 
 					<DropdownMenuSub>
 						<DropdownMenuSubTrigger>Velocidade</DropdownMenuSubTrigger>

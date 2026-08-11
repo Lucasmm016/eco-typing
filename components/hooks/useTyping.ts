@@ -52,7 +52,7 @@ export function useTyping(
 	// palavras com a posição onde terminam (ignora pontuação colada)
 	const words = useMemo(() => {
 		const result: { text: string; end: number }[] = []
-		for (const m of text.matchAll(/[\p{L}\p{N}']+/gu)) {
+		for (const m of text.matchAll(/[\p{L}\p{N}']+(?:-[\p{L}\p{N}']+)*/gu)) {
 			result.push({ text: m[0], end: (m.index ?? 0) + m[0].length })
 		}
 		return result
