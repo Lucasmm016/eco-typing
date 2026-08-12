@@ -64,6 +64,7 @@ const DEFAULT_VOICE_RATE = 1.25
 const keepOpen = (event: Event) => event.preventDefault()
 
 const RATES_MAP = [
+	{ value: '0.75', label: '0.75x' },
 	{ value: '1', label: '1.0x' },
 	{ value: '1.25', label: '1.25x' },
 	{ value: '1.5', label: '1.5x' },
